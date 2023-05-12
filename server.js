@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 
-app.post('/register', async (req, res) => {
+app.post('/register', async (req, res, next) => {
     /**
      * Request Input Sources:
      *  - req Body
@@ -23,7 +23,8 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({mess: 'Invalid Data'});
     }
 
-    let user = await User.findOne({ email });
+    try {
+        let user = await User.findOne({ email });
 
     if(user) {
         return res.status(400).json({ message: 'User already exist' });
@@ -37,7 +38,33 @@ app.post('/register', async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ message: 'User Created Successfully'});
+    res.status(201).json({ message: 'User Created Successfully'}, user);
+    }
+    catch (e) {
+        next(e);
+    }
+});
+
+app.post('/login', async(req, res, next) => {
+    const { name, email, password } = req.body;
+
+    try{
+       const user = await User.findOne({email});
+       if(!user) {
+        return res.status(400).json({ message
+        : 'Invalid credential' });
+       }
+       const isMatch = bcrypt.compare(password, user.password);
+
+       if(!isMatch) {
+        return res.status
+        (400).json({ message: 'Invalid Credential' });
+       }
+
+       delete user._doc.password;
+       return res.status(200).json({ message: 'Login Successful' });
+    }
+
 })
 
 app.get('/', (_, res) => {
