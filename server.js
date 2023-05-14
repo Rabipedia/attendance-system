@@ -1,5 +1,6 @@
 const express = require('express');
 const connectDB = require('./db');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('./Models/User'); 
 
@@ -62,7 +63,8 @@ app.post('/login', async(req, res, next) => {
        }
 
        delete user._doc.password;
-       return res.status(200).json({ message: 'Login Successful' });
+       const token = jwt.sign(user._doc, 'secret-key', {expiresIn: '2h'})
+       return res.status(200).json({ message: 'Login Successful', token });
     }
 
 })
@@ -76,9 +78,9 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Server error occured'});
 })
 
-connectDB('mongodb://localhost:27017/attendance-db')
-    .then(() => {
-        console.log('Database Connected');
+connectDB('mongodb://localhost:27017/attendance-db').then(() => {
+        
+    console.log('Database Connected');
         app.listen(4000, () => {
             console.log("I'm listening on port 4000")
         })
