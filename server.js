@@ -69,6 +69,28 @@ app.post('/login', async(req, res, next) => {
 
 })
 
+app.get('/private', async(req, res) => {
+    let token = req.headers.authorization;
+    if(!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try{
+        token = token.split(' ')[1];
+        const decoded = jwt.verify(token, 'secret-key');
+        const user = await User.findById(decoded._id);
+        if(!user){
+            return res.status(401).json({ message: 'Unauthorized' })
+        }
+        return res.status(200).json({ message: 'I am a private route'})
+    } catch(e){
+        res.status(400).json({ message: 'Invalid token'})
+    }
+})
+
+app.get('/public', (req, res) => {
+    return res.status(200).json({ message: 'I am a public a route'})
+})
+
 app.get('/', (_, res) => {
     res.send('Thank you for your request')
 });
