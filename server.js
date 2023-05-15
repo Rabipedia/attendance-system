@@ -1,72 +1,17 @@
 const express = require('express');
 const connectDB = require('./db');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('./Models/User'); 
+const { loginController, registerController } = require('./Controller/auth')
 const authenticate = require('./Middleware/authenticate');
+const routes = require('./Routes/index');
 
 const app = express();
 app.use(express.json());
+app.use(routes);
 
 
-app.post('/register', async (req, res, next) => {
-    /**
-     * Request Input Sources:
-     *  - req Body
-     *  - req Param
-     *  - req Query
-     *  - req Header
-     *  - req Cookies
-     */
+app.post('/register', registerController);
 
-    const { name, email, password } = req.body;
-
-    if(!name || !email || !password) {
-        return res.status(400).json({mess: 'Invalid Data'});
-    }
-
-    try {
-        let user = await User.findOne({ email });
-
-    if(user) {
-        return res.status(400).json({ message: 'User already exist' });
-    }
-
-    user = new User({name, email, password});
-
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-    user.password = hash;
-
-    await user.save();
-
-    res.status(201).json({ message: 'User Created Successfully'}, user);
-    }
-    catch (e) {
-        next(e);
-    }
-});
-
-app.post('/login', async(req, res, next) => {
-    const { name, email, password } = req.body;
-
-    try{
-       const user = await User.findOne({email});
-       if(!user) {
-        return res.status(400).json({ message
-        : 'Invalid credential' });
-       }
-       const isMatch = bcrypt.compare(password, user.password);
-
-       if(!isMatch) {
-        return res.status(400).json({ message: 'Invalid Credential' });
-       }
-       delete user._doc.password;
-       const token = jwt.sign(user._doc, 'secret-key', {expiresIn: '2h'})
-       return res.status(200).json({ message: 'Login Successful', token });
-    }
-
-})
+app.post('/login', loginController)
 
 app.get('/private',authenticate, async(req, res) => {
     
