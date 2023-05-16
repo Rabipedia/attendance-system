@@ -3,6 +3,7 @@ const connectDB = require('./db');
 const { loginController, registerController } = require('./Controller/auth')
 const authenticate = require('./Middleware/authenticate');
 const routes = require('./Routes/index');
+const error = require('./Utils/error');
 
 const app = express();
 app.use(express.json());
@@ -27,8 +28,10 @@ app.get('/', (_, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.log(err);
-    res.status(500).json({ message: 'Server error occured'});
+    const msg =  err.message ? err.message : 'Server error occured';
+    const status =  err.status ? err.status : '500';
+
+    res.status(status).json({ message });
 })
 
 connectDB('mongodb://localhost:27017/attendance-db').then(() => {

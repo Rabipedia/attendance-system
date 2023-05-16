@@ -1,14 +1,11 @@
 const User = require('../Models/User');
-const {findUserByProperty, createNewUser} = require('./user')
+const {findUserByProperty, createNewUser} = require('./user');
+const error = require('../Utils/error');
 
 const registerService = ({name, email, password}) => {
     let user =  findUserByProperty('email', email)
 
-    if(user) {
-        const error = new Error('User already exist');
-        error.status = 400;
-        throw error;
-    }
+    if(user) throw error('User already exist', 400); 
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
@@ -18,18 +15,12 @@ const registerService = ({name, email, password}) => {
 
 const loginService = ({email, password}) => {
     const user =  findUserByProperty('email', email)
-       if(!user) {
-        const error = new Error('Invalid credential');
-        error.status = 400;
-        throw error;
-       }
+       if(!user) throw error('Invalid credential', 400);
+       
        const isMatch = bcrypt.compare(password, user.password);
 
-       if(!isMatch) {
-        const error = new Error('Invalid credential');
-        error.status = 400;
-        throw error;
-       }
+       if(!isMatch) throw error('Invalid credential', 400);
+       
        const payload = {
         _id: user._id,
         name: user.name,
