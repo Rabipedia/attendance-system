@@ -2,7 +2,7 @@ const User = require('../Models/User');
 const {findUserByProperty, createNewUser} = require('./user');
 const error = require('../Utils/error');
 
-const registerService = ({name, email, password}) => {
+const registerService = ({ name, email, password, roles, accountStatus }) => {
     let user =  findUserByProperty('email', email)
 
     if(user) throw error('User already exist', 400); 
@@ -10,7 +10,7 @@ const registerService = ({name, email, password}) => {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
     user.password = hash;
-    createNewUser({name, email, password: hash});
+    createNewUser({ name, email, password: hash, roles, accountStatus });
 }
 
 const loginService = ({email, password}) => {
